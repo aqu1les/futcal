@@ -15,7 +15,10 @@ const { title = 'FutCal', active } = Astro.props;
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="generator" content={Astro.generator} />
     <meta name="theme-color" content="#0b1f17" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="/pwa-192.png" />
     <title>{title}</title>
+    <script is:inline src="/registerSW.js"></script>
   </head>
   <body>
     <div class="mx-auto flex min-h-dvh max-w-2xl flex-col px-5">

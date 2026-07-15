@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="#0b1f17"/>
+  <!-- linha central do gramado -->
+  <line x1="256" y1="96" x2="256" y2="416" stroke="#23402f" stroke-width="8"/>
+  <!-- círculo central em giz -->
+  <circle cx="256" cy="256" r="132" fill="none" stroke="#f2f5ec" stroke-width="12"/>
+  <!-- spot central em âmbar (refletor) -->
+  <circle cx="256" cy="256" r="26" fill="#e8c547"/>
+</svg>
