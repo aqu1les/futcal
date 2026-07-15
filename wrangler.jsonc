@@ -3,7 +3,7 @@
 	"compatibility_date": "2026-03-10",
 	"compatibility_flags": ["global_fetch_strictly_public", "nodejs_compat"],
 	"name": "futcal",
-	"main": "@astrojs/cloudflare/entrypoints/server",
+	"main": "./src/worker.ts",
 	"assets": {
 		"directory": "./dist",
 		"binding": "ASSETS"
