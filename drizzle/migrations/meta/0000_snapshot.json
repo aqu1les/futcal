@@ -2,7 +2,7 @@
   "version": "6",
   "dialect": "sqlite",
   "id": "56346933-c5df-488e-996c-9063e81d6b50",
-  "prevId": "00000000-0000-0000-0000-000000000000",
+  "prevId": "a5a89412-d39f-4f9b-8d53-d102cc74bdfe",
   "tables": {
     "fixtures": {
       "name": "fixtures",
