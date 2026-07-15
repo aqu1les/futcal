@@ -53,7 +53,7 @@ async function follow(team: Team) {
     const res = await fetch('/api/subscriptions', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ team }),
+      body: JSON.stringify({ teamId: team.id }),
     });
     if (!res.ok) throw new Error('falhou');
     followed.value = new Set(followed.value).add(team.id);

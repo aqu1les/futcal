@@ -2,7 +2,8 @@
 // gerado pelo `wrangler types`. Declaramos aqui pra tipar o binding em todo o app.
 declare namespace Cloudflare {
   interface Env {
-    API_FOOTBALL_KEY: string;
+    // Protege os endpoints internos de populate/sync manuais.
+    ADMIN_SECRET: string;
   }
 }
 

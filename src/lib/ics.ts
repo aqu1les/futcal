@@ -1,5 +1,7 @@
 // Geração manual de .ics (RFC 5545), sem lib externa.
 
+import type { FixtureStatus } from '../providers/types';
+
 export interface IcsFixture {
   id: number;
   home: string;
@@ -8,8 +10,15 @@ export interface IcsFixture {
   round: string | null;
   venue: string | null;
   startsAt: Date;
-  status: string;
+  status: FixtureStatus;
   revision: number;
+}
+
+// Mapeia o status neutro do domínio para o STATUS do VEVENT (RFC 5545).
+function icsStatus(status: FixtureStatus): string {
+  if (status === 'postponed') return 'TENTATIVE';
+  if (status === 'canceled') return 'CANCELLED';
+  return 'CONFIRMED';
 }
 
 const EVENT_DURATION_MS = 2 * 60 * 60 * 1000; // 2h fixas
@@ -75,7 +84,7 @@ function buildEvent(f: IcsFixture, dtstamp: string): string[] {
     line('DTEND', end),
     line('SUMMARY', esc(`${f.home} x ${f.away} — ${f.competition}`)),
     line('DESCRIPTION', esc(description)),
-    line('STATUS', f.status === 'PST' ? 'TENTATIVE' : 'CONFIRMED'),
+    line('STATUS', icsStatus(f.status)),
   ];
   if (f.venue != null) {
     rows.push(line('LOCATION', esc(f.venue)));

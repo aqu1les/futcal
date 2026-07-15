@@ -18,18 +18,16 @@
 		{
 			"binding": "DB",
 			"database_name": "futcal",
-			// Placeholder: rode `bunx wrangler d1 create futcal` autenticado e cole o database_id real aqui.
 			"database_id": "a5a89412-d39f-4f9b-8d53-d102cc74bdfe",
 			"migrations_dir": "./drizzle/migrations"
 		},
 	],
 	"triggers": {
-		// 06:00 BRT (UTC-3) = 09:00 UTC — sync diário
 		"crons": [
-			"0 9 * * *"
+			// 06:00 BRT (UTC-3) = 09:00 UTC — sync diário dos jogos
+			"0 9 * * *",
+			// 1º de fevereiro 08:00 UTC — populate anual dos times (início de temporada)
+			"0 8 1 2 *"
 		]
-	},
-	"vars": {
-		"API_FOOTBALL_SEASON": "2026"
 	}
 }

@@ -1,46 +1,35 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
-import teamsJson from '../../tests/fixtures/api-football-teams.json';
-import { workerCache } from './cache';
-import { searchTeamsCached } from './teams';
+import { env } from 'cloudflare:test';
+import { beforeEach, describe, expect, it } from 'vitest';
+import { getDb } from '../db';
+import { teams } from '../db/schema';
+import { normalizeSearch } from './text';
+import { searchTeams } from './teams';
 
-const env = {
-  API_FOOTBALL_KEY: 'test-key',
-  API_FOOTBALL_SEASON: '2026',
-} as Cloudflare.Env;
+const db = getDb(env);
 
-afterEach(() => vi.restoreAllMocks());
-
-function mockFetch() {
-  return vi.spyOn(globalThis, 'fetch').mockResolvedValue(
-    new Response(JSON.stringify(teamsJson), {
-      status: 200,
-      headers: { 'content-type': 'application/json' },
-    }),
+async function seed(names: string[]) {
+  await db.insert(teams).values(
+    names.map((name) => ({ name, searchName: normalizeSearch(name), logo: null, country: null })),
   );
 }
 
-describe('searchTeamsCached', () => {
-  it('bate na API na primeira vez e serve do cache na segunda (mesma query)', async () => {
-    const spy = mockFetch();
-    const cache = workerCache;
-    const q = `fluminense-${crypto.randomUUID()}`; // query única por teste
+beforeEach(async () => {
+  await db.delete(teams);
+});
 
-    const first = await searchTeamsCached(env, q, cache);
-    const second = await searchTeamsCached(env, q, cache);
+describe('searchTeams', () => {
+  it('acha por nome, ignorando acento e caixa', async () => {
+    await seed(['Grêmio', 'Fluminense', 'Botafogo']);
 
-    expect(first).toHaveLength(2);
-    expect(second).toEqual(first);
-    expect(spy).toHaveBeenCalledTimes(1); // segunda veio do cache
+    const gremio = await searchTeams(db, 'gremio');
+    expect(gremio.map((t) => t.name)).toEqual(['Grêmio']);
+
+    const flu = await searchTeams(db, 'FLU');
+    expect(flu.map((t) => t.name)).toEqual(['Fluminense']);
   });
 
-  it('normaliza a query (case/espaços) pra reaproveitar o cache', async () => {
-    const spy = mockFetch();
-    const cache = workerCache;
-    const token = crypto.randomUUID();
-
-    await searchTeamsCached(env, `Fluminense ${token}`, cache);
-    await searchTeamsCached(env, `  fluminense ${token}  `, cache);
-
-    expect(spy).toHaveBeenCalledTimes(1);
+  it('exige ao menos 2 caracteres', async () => {
+    await seed(['Fluminense']);
+    expect(await searchTeams(db, 'f')).toEqual([]);
   });
 });

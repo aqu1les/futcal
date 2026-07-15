@@ -1,8 +1,8 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "56346933-c5df-488e-996c-9063e81d6b50",
-  "prevId": "a5a89412-d39f-4f9b-8d53-d102cc74bdfe",
+  "id": "8a64c1fe-c8bf-4841-ab30-44a7ce27f83c",
+  "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "fixtures": {
       "name": "fixtures",
@@ -12,11 +12,18 @@
           "type": "integer",
           "primaryKey": true,
           "notNull": true,
+          "autoincrement": true
+        },
+        "source": {
+          "name": "source",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
           "autoincrement": false
         },
-        "team_id": {
-          "name": "team_id",
-          "type": "integer",
+        "external_id": {
+          "name": "external_id",
+          "type": "text",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
@@ -33,6 +40,20 @@
           "type": "text",
           "primaryKey": false,
           "notNull": true,
+          "autoincrement": false
+        },
+        "home_team_id": {
+          "name": "home_team_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "away_team_id": {
+          "name": "away_team_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
           "autoincrement": false
         },
         "competition": {
@@ -88,33 +109,61 @@
         }
       },
       "indexes": {
-        "idx_fixtures_team": {
-          "name": "idx_fixtures_team",
-          "columns": [
-            "team_id"
-          ],
-          "isUnique": false
-        },
         "idx_fixtures_starts_at": {
           "name": "idx_fixtures_starts_at",
           "columns": [
             "starts_at"
           ],
           "isUnique": false
+        },
+        "idx_fixtures_home": {
+          "name": "idx_fixtures_home",
+          "columns": [
+            "home_team_id"
+          ],
+          "isUnique": false
+        },
+        "idx_fixtures_away": {
+          "name": "idx_fixtures_away",
+          "columns": [
+            "away_team_id"
+          ],
+          "isUnique": false
+        },
+        "uq_fixtures_source": {
+          "name": "uq_fixtures_source",
+          "columns": [
+            "source",
+            "external_id"
+          ],
+          "isUnique": true
         }
       },
       "foreignKeys": {
-        "fixtures_team_id_teams_id_fk": {
-          "name": "fixtures_team_id_teams_id_fk",
+        "fixtures_home_team_id_teams_id_fk": {
+          "name": "fixtures_home_team_id_teams_id_fk",
           "tableFrom": "fixtures",
           "tableTo": "teams",
           "columnsFrom": [
-            "team_id"
+            "home_team_id"
           ],
           "columnsTo": [
             "id"
           ],
-          "onDelete": "cascade",
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        },
+        "fixtures_away_team_id_teams_id_fk": {
+          "name": "fixtures_away_team_id_teams_id_fk",
+          "tableFrom": "fixtures",
+          "tableTo": "teams",
+          "columnsFrom": [
+            "away_team_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
           "onUpdate": "no action"
         }
       },
@@ -181,6 +230,67 @@
       "uniqueConstraints": {},
       "checkConstraints": {}
     },
+    "team_sources": {
+      "name": "team_sources",
+      "columns": {
+        "source": {
+          "name": "source",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "external_id": {
+          "name": "external_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "team_id": {
+          "name": "team_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "idx_team_sources_team": {
+          "name": "idx_team_sources_team",
+          "columns": [
+            "team_id"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "team_sources_team_id_teams_id_fk": {
+          "name": "team_sources_team_id_teams_id_fk",
+          "tableFrom": "team_sources",
+          "tableTo": "teams",
+          "columnsFrom": [
+            "team_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "team_sources_source_external_id_pk": {
+          "columns": [
+            "source",
+            "external_id"
+          ],
+          "name": "team_sources_source_external_id_pk"
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
     "teams": {
       "name": "teams",
       "columns": {
@@ -189,10 +299,17 @@
           "type": "integer",
           "primaryKey": true,
           "notNull": true,
-          "autoincrement": false
+          "autoincrement": true
         },
         "name": {
           "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "search_name": {
+          "name": "search_name",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
@@ -213,7 +330,15 @@
           "autoincrement": false
         }
       },
-      "indexes": {},
+      "indexes": {
+        "idx_teams_search": {
+          "name": "idx_teams_search",
+          "columns": [
+            "search_name"
+          ],
+          "isUnique": false
+        }
+      },
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},

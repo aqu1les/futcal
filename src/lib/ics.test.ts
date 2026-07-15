@@ -11,7 +11,7 @@ const base: IcsFixture = {
   round: 'Regular Season - 15',
   venue: 'Maracana',
   startsAt: new Date('2026-08-01T22:00:00Z'),
-  status: 'NS',
+  status: 'scheduled',
   revision: 2,
 };
 
@@ -47,8 +47,8 @@ describe('buildCalendar', () => {
     expect(ics).toContain('DESCRIPTION:Serie A · Regular Season - 15');
   });
 
-  it('mapeia status PST para STATUS:TENTATIVE', () => {
-    const pst: IcsFixture = { ...base, status: 'PST' };
+  it('mapeia status postponed para STATUS:TENTATIVE', () => {
+    const pst: IcsFixture = { ...base, status: 'postponed' };
     const ics = buildCalendar({ calName: 'x', fixtures: [pst], now });
     expect(ics).toContain('STATUS:TENTATIVE');
   });

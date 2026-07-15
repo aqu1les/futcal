@@ -1,26 +1,21 @@
 import { env } from 'cloudflare:workers';
 import type { APIRoute } from 'astro';
 import { getDb } from '../../db';
-import { followTeam, type TeamInput } from '../../lib/subscriptions';
+import { provider } from '../../providers';
+import { followTeam } from '../../lib/subscriptions';
 import { syncFixtures } from '../../lib/sync';
 import { USER_COOKIE } from '../../middleware';
 
 export const prerender = false;
 
 export const POST: APIRoute = async ({ request, locals, cookies }) => {
-  let team: TeamInput;
+  let teamId: number;
   try {
-    const body = (await request.json()) as { team?: Partial<TeamInput> };
-    const t = body.team;
-    if (!t || typeof t.id !== 'number' || typeof t.name !== 'string') {
+    const body = (await request.json()) as { teamId?: number };
+    if (typeof body.teamId !== 'number' || !Number.isInteger(body.teamId)) {
       return Response.json({ error: 'invalid_team' }, { status: 400 });
     }
-    team = {
-      id: t.id,
-      name: t.name,
-      logo: t.logo ?? null,
-      country: t.country ?? null,
-    };
+    teamId = body.teamId;
   } catch {
     return Response.json({ error: 'invalid_body' }, { status: 400 });
   }
@@ -28,7 +23,7 @@ export const POST: APIRoute = async ({ request, locals, cookies }) => {
   const db = getDb(env);
   const { user, isNewUser } = await followTeam(db, {
     userId: locals.user?.id ?? null,
-    team,
+    teamId,
   });
 
   if (isNewUser) {
@@ -42,7 +37,7 @@ export const POST: APIRoute = async ({ request, locals, cookies }) => {
   }
 
   // Popula o feed inline pra não ficar vazio até o cron do dia seguinte.
-  const syncing = syncFixtures(env, [team.id]).catch((e) =>
+  const syncing = syncFixtures(db, provider).catch((e) =>
     console.error('sync inline falhou', e),
   );
   locals.cfContext?.waitUntil?.(syncing);

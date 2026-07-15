@@ -1,16 +1,20 @@
 import type { Fixture, NewFixture } from '../db/schema';
+import type { FixtureStatus } from '../providers/types';
 
-// Dados de um jogo vindos da API-Football, já normalizados.
-export interface FixtureInput {
-  id: number;
-  teamId: number;
+// Jogo já resolvido pelo sync: DTO neutro do provider + ids INTERNOS dos times
+// (null pro adversário que não está no nosso banco).
+export interface ResolvedFixture {
+  source: string;
+  externalId: string;
   home: string;
   away: string;
+  homeTeamId: number | null;
+  awayTeamId: number | null;
   competition: string;
   round: string | null;
   venue: string | null;
   startsAt: Date;
-  status: string;
+  status: FixtureStatus;
 }
 
 // Só os campos que decidem se o revision incrementa.
@@ -25,10 +29,10 @@ type ExistingFixture = Pick<Fixture, 'startsAt' | 'status' | 'revision'>;
  * duplicar. Função pura pra ser testável sem banco.
  */
 export function computeFixtureUpsert(
-  incoming: FixtureInput,
+  incoming: ResolvedFixture,
   existing: ExistingFixture | undefined,
   now: Date,
-): NewFixture {
+): Omit<NewFixture, 'id'> {
   let revision = 0;
   if (existing) {
     const changed =
@@ -38,10 +42,12 @@ export function computeFixtureUpsert(
   }
 
   return {
-    id: incoming.id,
-    teamId: incoming.teamId,
+    source: incoming.source,
+    externalId: incoming.externalId,
     home: incoming.home,
     away: incoming.away,
+    homeTeamId: incoming.homeTeamId,
+    awayTeamId: incoming.awayTeamId,
     competition: incoming.competition,
     round: incoming.round,
     venue: incoming.venue,

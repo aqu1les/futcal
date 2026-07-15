@@ -1,9 +1,10 @@
 import { env } from 'cloudflare:workers';
 import type { APIRoute } from 'astro';
-import { and, eq, gte, inArray, lte } from 'drizzle-orm';
+import { and, eq, gte, inArray, lte, or } from 'drizzle-orm';
 import { getDb } from '../../db';
 import { fixtures, subscriptions, teams, users } from '../../db/schema';
 import { buildCalendar, type IcsFixture } from '../../lib/ics';
+import type { FixtureStatus } from '../../providers/types';
 
 export const prerender = false;
 
@@ -22,7 +23,6 @@ export const GET: APIRoute = async ({ params }) => {
     .get();
   if (!user) return new Response('Not found', { status: 404 });
 
-  // Times assinados (para os IDs e para o nome do calendário).
   const subbed = await db
     .select({ id: teams.id, name: teams.name })
     .from(subscriptions)
@@ -36,7 +36,8 @@ export const GET: APIRoute = async ({ params }) => {
 
   let rows: IcsFixture[] = [];
   if (subbed.length > 0) {
-    rows = await db
+    const ids = subbed.map((t) => t.id);
+    const raw = await db
       .select({
         id: fixtures.id,
         home: fixtures.home,
@@ -51,15 +52,13 @@ export const GET: APIRoute = async ({ params }) => {
       .from(fixtures)
       .where(
         and(
-          inArray(
-            fixtures.teamId,
-            subbed.map((t) => t.id),
-          ),
+          or(inArray(fixtures.homeTeamId, ids), inArray(fixtures.awayTeamId, ids)),
           gte(fixtures.startsAt, from),
           lte(fixtures.startsAt, to),
         ),
       )
       .all();
+    rows = raw.map((r) => ({ ...r, status: r.status as FixtureStatus }));
   }
 
   const calName =
