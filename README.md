@@ -1,17 +1,45 @@
 # FutCal ⚽
 
 Calendário assinável (`.ics`) com os jogos dos times que você segue, sincronizado
-1×/dia com a API-Football. Roda 100% no free tier da Cloudflare: um único Worker
-serve o front (Astro + Vue islands), a API, o feed `.ics` e o cron de sync. Banco
-em D1 (SQLite) com Drizzle.
+diariamente. Roda 100% no free tier da Cloudflare: um único Worker serve o front
+(Astro + Vue islands), a API, o feed `.ics` e os crons. Banco em D1 (SQLite) com
+Drizzle.
 
 ## Stack
 
 - **Astro** (adapter `@astrojs/cloudflare`, output `server`) + **Vue 3** em islands
 - **D1** + **Drizzle ORM**
-- **Cron Trigger** nativo (1×/dia) → handler `scheduled` em [src/worker.ts](src/worker.ts)
-- Testes em **Vitest** com `@cloudflare/vitest-pool-workers` (rodam dentro do workerd)
-- Runtime é o **workerd** — só Web APIs no código da aplicação, nunca APIs do Bun
+- **Cron Triggers** nativos → handler `scheduled` em [src/worker.ts](src/worker.ts)
+- Testes em **Vitest** com `@cloudflare/vitest-pool-workers` (rodam no workerd)
+- Runtime é o **workerd** — só Web APIs no código, nunca APIs do Bun
+
+## Fonte de dados (provider)
+
+Os jogos vêm da **API pública da ESPN** (sem chave, sem quota) — inclui jogos
+**futuros** do Brasileirão A/B, Libertadores, Sudamericana, Copa do Brasil e
+estaduais.
+
+A fonte é **plugável** (arquitetura porta/adaptador):
+
+- [src/providers/types.ts](src/providers/types.ts) — o **contrato NOSSO**
+  (`MatchProvider` + DTOs neutros + status neutro). O domínio só depende disso.
+- [src/providers/espn.ts](src/providers/espn.ts) — o **adaptador ESPN** (URLs,
+  slugs de liga, formato do JSON, mapeamento de status). Tudo que é da ESPN vive aqui.
+- [src/providers/index.ts](src/providers/index.ts) — o provider ativo. **Trocar de
+  fonte = trocar uma linha** e escrever outro adaptador; o domínio não muda.
+
+Ids externos ficam desacoplados dos nossos: `teams` tem id **interno**; o mapa
+`(source, external_id) → team_id` fica em `team_sources` (suporta múltiplas fontes).
+
+## Como funciona
+
+- **Populate (1×/ano):** carrega os times das ligas cobertas pro nosso banco. A
+  busca é feita sobre o D1 (acento-insensível), sem bater na fonte externa.
+- **Sync (diário):** varre as ligas e guarda só os jogos que envolvem um time
+  **assinado**, resolvendo os ids internos e aplicando a regra do `revision`
+  (que vira o `SEQUENCE` do VEVENT — faz o calendário atualizar em vez de duplicar).
+- **Feed:** `/cal/{token}.ics` — o token é a credencial; jogos dos times seguidos
+  numa janela de -7 dias a +6 meses.
 
 ## Desenvolvimento
 
@@ -21,7 +49,7 @@ bun run db:migrate:local      # aplica migrations no D1 local
 bun run dev                   # front + endpoints (astro dev)
 ```
 
-Para exercitar o Worker real (feed, cron, cookies) use a config gerada pelo build:
+Para exercitar o Worker real (feed, crons, cookies) use a config do build:
 
 ```sh
 bun run build
@@ -40,46 +68,52 @@ bunx wrangler dev -c dist/server/wrangler.json
 | `bun run db:generate` | Gera migration a partir do schema Drizzle |
 | `bun run db:migrate:local` / `:remote` | Aplica migrations no D1 |
 | `bun run deploy` | Build + `wrangler deploy` (config do adapter) |
-| `bun run deploy:dry` | Build + deploy dry-run (não sobe nada) |
+
+## Operação manual (por provider)
+
+Endpoints internos protegidos pelo secret `ADMIN_SECRET` (mande sempre
+`content-type: application/json` pra passar no CSRF do Astro):
+
+```sh
+# popular os times (rodar 1× após deploy; depois o cron anual cuida)
+curl -X POST https://<host>/api/internal/populate \
+  -H "content-type: application/json" -H "x-admin-secret: <ADMIN_SECRET>"
+
+# forçar um sync dos jogos agora
+curl -X POST https://<host>/api/internal/sync \
+  -H "content-type: application/json" -H "x-admin-secret: <ADMIN_SECRET>"
+```
 
 ## Variáveis / bindings
 
 ```text
-API_FOOTBALL_KEY     # secret  → bunx wrangler secret put API_FOOTBALL_KEY
-API_FOOTBALL_SEASON  # var     → wrangler.jsonc (ex: 2026)
-DB                   # binding D1
+ADMIN_SECRET   # secret → protege os endpoints internos de populate/sync
+DB             # binding D1
 ```
 
-Para dev local com sync/busca reais, crie um `.dev.vars` (não versionado):
-
-```text
-API_FOOTBALL_KEY=sua-chave-aqui
-```
+Para dev local, o `ADMIN_SECRET` pode ir num `.dev.vars` (não versionado) ou via
+`wrangler dev --var ADMIN_SECRET:<valor>`.
 
 ## Deploy (runbook)
 
 Pré-requisitos: conta Cloudflare autenticada (`bunx wrangler login` ou
-`CLOUDFLARE_API_TOKEN`).
+`CLOUDFLARE_API_TOKEN`). O `database_id` do D1 já está no `wrangler.jsonc`.
 
 ```sh
-# 1. Criar o D1 e colar o database_id real em wrangler.jsonc
-bunx wrangler d1 create futcal
+# 1. secret dos endpoints internos
+printf '%s' "<um-segredo-forte>" | bunx wrangler secret put ADMIN_SECRET
 
-# 2. Secret da API-Football
-bunx wrangler secret put API_FOOTBALL_KEY
-
-# 3. Migrations no banco remoto
+# 2. migrations no banco remoto
 bun run db:migrate:remote
 
-# 4. Build + deploy
+# 3. build + deploy
 bun run deploy
+
+# 4. popular os times (uma vez)
+curl -X POST https://<host>/api/internal/populate \
+  -H "content-type: application/json" -H "x-admin-secret: <ADMIN_SECRET>"
 ```
 
-Depois: apontar um domínio custom (Workers → Custom Domains) — a URL do feed não
-deve mudar depois de publicada, senão quebra as assinaturas existentes. Conferir no
-dashboard que o Cron Trigger aparece agendado e, no dia seguinte, a execução em
-Workers → Logs.
-
-> **Nota:** o `wrangler.jsonc` está com `database_id` placeholder
-> (`00000000-...-0`). O D1 local (miniflare) ignora esse valor; para o deploy
-> remoto é obrigatório colar o id real do passo 1.
+Crons no dashboard: `0 9 * * *` (sync diário, 06:00 BRT) e `0 8 1 2 *` (populate
+anual, 1º de fevereiro). Domínio custom via Workers → Custom Domains (a URL do
+feed não deve mudar depois de publicada, senão quebra as assinaturas).
