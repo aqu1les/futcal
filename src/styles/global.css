@@ -1,1 +1,120 @@
-@import "tailwindcss";
+@import 'tailwindcss';
+
+/* ── FutCal · direção "Placar/Scoreboard" ─────────────────────────────
+   Gramado noturno + linhas de giz + âmbar de refletor como único acento. */
+@theme {
+  --color-pitch-950: #08170f;
+  --color-pitch-900: #0b1f17;
+  --color-pitch-850: #0e271c;
+  --color-pitch-800: #123024;
+  --color-line: #23402f;
+  --color-chalk: #f2f5ec;
+  --color-chalk-dim: #93a89a;
+  --color-flood: #e8c547;
+  --color-flood-ink: #241d05;
+
+  --font-display: 'Arial Narrow', 'Helvetica Neue', 'Liberation Sans', sans-serif;
+  --font-body: ui-sans-serif, system-ui, 'Segoe UI', Roboto, sans-serif;
+}
+
+html {
+  background-color: var(--color-pitch-900);
+  color: var(--color-chalk);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  min-height: 100dvh;
+}
+
+@layer components {
+  /* Rótulo de placar: condensado, caixa-alta, com marcador de giz. */
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: var(--font-display);
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    font-weight: 700;
+    font-size: 0.8rem;
+    color: var(--color-chalk-dim);
+  }
+  .eyebrow::before {
+    content: '';
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 9999px;
+    background: var(--color-flood);
+    box-shadow: 0 0 0.5rem var(--color-flood);
+  }
+
+  /* Régua de giz — divisória com traço irregular sutil. */
+  .chalk-rule {
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      var(--color-line) 8%,
+      var(--color-line) 92%,
+      transparent
+    );
+  }
+
+  .card {
+    background: var(--color-pitch-850);
+    border: 1px solid var(--color-line);
+    border-radius: 0.75rem;
+  }
+
+  .btn {
+    font-family: var(--font-display);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    padding: 0.55rem 1rem;
+    border-radius: 0.6rem;
+    cursor: pointer;
+    transition: transform 0.08s ease, background-color 0.15s ease, border-color 0.15s ease;
+  }
+  .btn:active {
+    transform: translateY(1px);
+  }
+  .btn-flood {
+    background: var(--color-flood);
+    color: var(--color-flood-ink);
+  }
+  .btn-flood:hover {
+    background: #f0d15f;
+  }
+  .btn-ghost {
+    background: transparent;
+    color: var(--color-chalk);
+    border: 1px solid var(--color-line);
+  }
+  .btn-ghost:hover {
+    border-color: var(--color-chalk-dim);
+  }
+  .btn:disabled {
+    opacity: 0.55;
+    cursor: default;
+    transform: none;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-flood);
+    outline-offset: 2px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
+}

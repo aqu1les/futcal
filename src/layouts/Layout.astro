@@ -1,0 +1,58 @@
+---
+import '../styles/global.css';
+
+interface Props {
+  title?: string;
+  active?: 'home' | 'teams';
+}
+const { title = 'FutCal', active } = Astro.props;
+---
+
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="generator" content={Astro.generator} />
+    <meta name="theme-color" content="#0b1f17" />
+    <title>{title}</title>
+  </head>
+  <body>
+    <div class="mx-auto flex min-h-dvh max-w-2xl flex-col px-5">
+      <header class="flex items-center justify-between py-5">
+        <a href="/" class="flex items-baseline gap-2">
+          <span
+            class="font-display text-2xl font-bold uppercase tracking-tight text-chalk"
+            >FutCal</span
+          >
+          <span class="text-flood" aria-hidden="true">⚽</span>
+        </a>
+        <nav class="flex items-center gap-1 text-sm">
+          <a
+            href="/"
+            class:list={[
+              'rounded-md px-3 py-1.5 font-display uppercase tracking-wide',
+              active === 'home' ? 'text-flood' : 'text-chalk-dim hover:text-chalk',
+            ]}>Buscar</a
+          >
+          <a
+            href="/meus-times"
+            class:list={[
+              'rounded-md px-3 py-1.5 font-display uppercase tracking-wide',
+              active === 'teams' ? 'text-flood' : 'text-chalk-dim hover:text-chalk',
+            ]}>Meus times</a
+          >
+        </nav>
+      </header>
+
+      <main class="flex-1 pb-16">
+        <slot />
+      </main>
+
+      <footer class="chalk-rule mt-8"></footer>
+      <p class="py-5 text-center text-xs text-chalk-dim">
+        Calendário assinável dos seus times · sincronizado 1×/dia
+      </p>
+    </div>
+  </body>
+</html>

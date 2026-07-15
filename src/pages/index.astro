@@ -1,22 +1,26 @@
 ---
-import '../styles/global.css';
+import TeamSearch from '../components/TeamSearch.vue';
+import Layout from '../layouts/Layout.astro';
 ---
 
-<html lang="pt-BR">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width, initial-scale=1" />
-		<meta name="generator" content={Astro.generator} />
-		<title>FutCal</title>
-	</head>
-	<body class="min-h-screen bg-neutral-950 text-neutral-100">
-		<main class="mx-auto max-w-xl px-6 py-16">
-			<h1 class="text-3xl font-bold">FutCal ⚽</h1>
-			<p class="mt-2 text-neutral-400">
-				Calendário assinável com os jogos dos seus times.
-			</p>
-		</main>
-	</body>
-</html>
+<Layout active="home">
+  <section class="pt-6">
+    <p class="eyebrow">Escalação</p>
+    <h1
+      class="mt-3 font-display text-4xl leading-[1.05] font-bold text-chalk sm:text-5xl"
+    >
+      Os jogos do seu time,<br />direto no seu calendário.
+    </h1>
+    <p class="mt-4 max-w-md text-chalk-dim">
+      Escolha os times, copie o link e assine no Google ou Apple Calendar. A
+      gente sincroniza os jogos todo dia — você nunca perde um.
+    </p>
+  </section>
+
+  <div class="chalk-rule my-8"></div>
+
+  <section>
+    <p class="eyebrow mb-4">Seguir um time</p>
+    <TeamSearch client:load />
+  </section>
+</Layout>
