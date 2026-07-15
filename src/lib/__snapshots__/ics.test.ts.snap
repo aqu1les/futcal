@@ -1,0 +1,25 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`buildCalendar > bate com o snapshot conhecido 1`] = `
+"BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//futcal//PT
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+X-WR-CALNAME:Fluminense
+REFRESH-INTERVAL;VALUE=DURATION:PT12H
+X-PUBLISHED-TTL:PT12H
+BEGIN:VEVENT
+UID:fixture-1300001@futcal
+SEQUENCE:2
+DTSTAMP:20260715T090000Z
+DTSTART:20260801T220000Z
+DTEND:20260802T000000Z
+SUMMARY:Fluminense x Flamengo — Serie A
+DESCRIPTION:Serie A · Regular Season - 15
+STATUS:CONFIRMED
+LOCATION:Maracana
+END:VEVENT
+END:VCALENDAR
+"
+`;
