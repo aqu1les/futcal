@@ -5,3 +5,10 @@ declare namespace Cloudflare {
     API_FOOTBALL_KEY: string;
   }
 }
+
+// Usuário anônimo resolvido pelo middleware a partir do cookie (null se não houver).
+declare namespace App {
+  interface Locals {
+    user: import('./db/schema').User | null;
+  }
+}
