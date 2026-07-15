@@ -1,0 +1,30 @@
+{
+	"$schema": "./node_modules/wrangler/config-schema.json",
+	"compatibility_date": "2026-07-15",
+	"compatibility_flags": ["global_fetch_strictly_public", "nodejs_compat"],
+	"name": "futcal",
+	"main": "@astrojs/cloudflare/entrypoints/server",
+	"assets": {
+		"directory": "./dist",
+		"binding": "ASSETS"
+	},
+	"observability": {
+		"enabled": true
+	},
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "futcal",
+			// Placeholder: rode `bunx wrangler d1 create futcal` autenticado e cole o database_id real aqui.
+			"database_id": "00000000-0000-0000-0000-000000000000",
+			"migrations_dir": "./drizzle/migrations"
+		}
+	],
+	"triggers": {
+		// 06:00 BRT (UTC-3) = 09:00 UTC — sync diário
+		"crons": ["0 9 * * *"]
+	},
+	"vars": {
+		"API_FOOTBALL_SEASON": "2026"
+	}
+}
