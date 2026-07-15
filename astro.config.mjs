@@ -8,9 +8,8 @@ import tailwindcss from '@tailwindcss/vite';
 // https://astro.build/config
 export default defineConfig({
   output: 'server',
-  adapter: cloudflare({
-    platformProxy: { enabled: true },
-  }),
+  // O adapter v14 carrega os bindings do wrangler.jsonc (DB/D1) automaticamente no `astro dev`.
+  adapter: cloudflare(),
   integrations: [vue()],
 
   vite: {

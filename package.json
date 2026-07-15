@@ -10,6 +10,12 @@
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",
+    "check": "astro check",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate:local": "wrangler d1 migrations apply futcal --local",
+    "db:migrate:remote": "wrangler d1 migrations apply futcal --remote",
     "generate-types": "wrangler types"
   },
   "dependencies": {
@@ -23,6 +29,12 @@
     "wrangler": "^4.111.0"
   },
   "devDependencies": {
-    "drizzle-kit": "^0.31.10"
+    "@astrojs/check": "^0.9.9",
+    "@cloudflare/vitest-pool-workers": "0.12.21",
+    "@vitest/runner": "3.2.4",
+    "@vitest/snapshot": "3.2.4",
+    "drizzle-kit": "^0.31.10",
+    "typescript": "6",
+    "vitest": "3.2.4"
   }
 }
